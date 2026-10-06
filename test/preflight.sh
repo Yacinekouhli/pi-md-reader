@@ -55,24 +55,19 @@ else
 fi
 
 echo "npm auth"
-# Publishing requires 2FA on the account OR a granular token with bypass-2FA enabled.
-# Both facts are discoverable, so report them here instead of letting npm answer with a
-# bare 403 after the upload has already been prepared.
+# Releases publish from CI over OIDC trusted publishing, so no local credentials are needed
+# and being logged out here is the healthy state. Credentials only matter for the manual
+# first-release path, so report the state without failing on it.
 who=$(npm whoami 2>/dev/null || true)
 if [ -z "$who" ]; then
-  bad "not logged in to npm; run: npm login"
+  ok "not logged in locally (releases publish from CI over OIDC, which needs no credentials)"
 else
   ok "authenticated as $who"
   twofa=$(npm profile get 2>/dev/null | sed -nE 's/^two-factor auth:[[:space:]]*//p' | head -1)
   if [ "$twofa" = "disabled" ]; then
-    warn "account 2FA is disabled, so npm will refuse an interactive publish"
-    echo "       fix, either:"
-    echo "         a) enable 2FA at https://www.npmjs.com/settings/$who/profile"
-    echo "            then re-run this script and publish interactively"
-    echo "         b) create a granular access token with \"bypass 2FA\" enabled at"
-    echo "            https://www.npmjs.com/settings/$who/tokens and install it:"
-    echo "              npm config set //registry.npmjs.org/:_authToken <token>"
-    echo "       see: https://docs.npmjs.com/requiring-2fa-for-package-publishing-and-settings-modification/"
+    warn "account 2FA is disabled; a manual npm publish would be refused"
+    echo "       only needed for a first release of a new package, or to change the trusted publisher:"
+    echo "         https://www.npmjs.com/settings/$who/profile"
   else
     ok "account 2FA is $twofa"
   fi
@@ -81,15 +76,16 @@ fi
 echo "trusted publishing"
 # `npm trust` silently misbehaves on npm < 11.15.0: it never sends the `permissions` array the
 # registry now requires, so it fails with a bare 400 right after the 2FA prompt succeeds.
-# Check the version here rather than discovering it a second time.
+# This is only needed to (re)register the trusted publisher, not to cut a release, so it is a
+# warning rather than a failure.
 npm_version=$(npm --version)
 if node -e 'const [a,b]=process.argv[1].split(".").map(Number); process.exit(a>11 || (a===11 && b>=15) ? 0 : 1)' "$npm_version"; then
   ok "npm $npm_version can create trust relationships"
 else
-  bad "npm $npm_version cannot create a trust relationship (needs >= 11.15.0)"
+  warn "npm $npm_version cannot create a trust relationship (needs >= 11.15.0)"
   echo "       npm < 11.15.0 omits the permissions array the registry requires and fails"
   echo "       with a bare 400 right after the 2FA prompt succeeds."
-  echo "       use a newer npm, e.g.: npm install -g npm@^11.15.0"
+  echo "       Adding a newer npm to PATH fixes it, e.g. ~/.local/share/npm-trust/node_modules/.bin"
 fi
 
 echo

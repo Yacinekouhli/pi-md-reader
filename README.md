@@ -116,6 +116,23 @@ instead of being committed.
 /tmp/e2evenv/bin/python test/screenshot.py
 ```
 
+### Smoke-testing the published package
+
+`test/e2e.py` loads the extension by path. `test/smoke-installed.py` instead installs from the
+registry and launches pi without `--extension`, so discovery comes purely from the published
+package. That catches packaging faults a path-based run cannot: a broken `pi.extensions`
+manifest, files missing from the tarball, or a peer import that does not resolve from Pi's npm
+directory. Run it before announcing a release, or after changing the manifest.
+
+```bash
+python3 test/smoke-installed.py                 # latest from npm
+python3 test/smoke-installed.py --version 0.1.2 # a specific version
+```
+
+It edits your pi settings, so it removes the local checkout entry for the duration (otherwise the
+extension loads twice and `/md` is registered by both sources), restores them afterwards, and
+deletes the registry-installed copy so your working copy keeps being used.
+
 ### Publishing
 
 Releases are driven by tags and use npm's OIDC
