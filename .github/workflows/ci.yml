@@ -14,9 +14,9 @@ jobs:
     name: end-to-end tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           package-manager-cache: false
@@ -42,7 +42,7 @@ jobs:
 
       - name: Upload the test report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-report
           path: test/artifacts/

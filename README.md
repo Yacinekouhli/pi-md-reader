@@ -1,5 +1,7 @@
 # pi-md-reader
 
+[![CI](https://github.com/Yacinekouhli/pi-md-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/Yacinekouhli/pi-md-reader/actions/workflows/ci.yml)
+
 Read `.md` files inside [Pi](https://pi.dev) with a paged overlay reader: contents panel,
 search with highlights, scrollbar, and reload — rendered through Pi's own Markdown renderer,
 so headings, tables, code fences and LaTeX look exactly like they do in the transcript.
@@ -116,24 +118,34 @@ instead of being committed.
 
 ### Publishing
 
-npm requires **either** 2FA enabled on the account **or** a granular access token with
-"bypass 2FA" enabled to publish. `test/preflight.sh` verifies the Pi package contract, that the
-entry point imports nothing outside Node built-ins and the two host-provided peers, the exact
-tarball contents, whether the version is free, and reports the account's 2FA state — because a
-publish on an account with 2FA disabled fails with a bare `403` only after the tarball has been
-built:
+Releases are driven by tags and use npm's OIDC
+[trusted publishing](https://docs.npmjs.com/trusted-publishers), so no npm token is stored
+anywhere:
 
 ```bash
-test/preflight.sh
-npm publish --access public
+npm version patch          # or minor / major: bumps package.json and creates the tag
+git push --follow-tags
 ```
 
-Note that npm's OIDC [trusted publishing](https://docs.npmjs.com/trusted-publishers) cannot
-publish a version of a package that does not exist yet, so the **first release must be manual**.
-Afterwards it can be configured for tag-driven CI releases from GitHub Actions.
+`.github/workflows/publish.yml` then runs the end-to-end tests, verifies the tag matches
+`package.json`, refuses to publish a version that already exists, publishes, and confirms the
+registry reports the new version. The [trusted publisher](https://www.npmjs.com/package/pi-md-reader/access)
+is registered against the workflow filename `publish.yml`; renaming that file breaks publishing
+until the npmjs.com setting is updated to match.
+
+Running the workflow manually validates and packs without publishing, since only a `v*` tag
+reaches the publish job.
 
 There is no submission step for [pi.dev/packages](https://pi.dev/packages): the gallery indexes
 npm packages carrying the `pi-package` keyword.
+
+A note for the first release of any *new* package: npm requires the package to exist before a
+trusted publisher can be configured, so the initial version has to be published manually:
+
+```bash
+test/preflight.sh          # checks the manifest, tarball, version, and account 2FA state
+npm publish --access public
+```
 
 ## License
 
