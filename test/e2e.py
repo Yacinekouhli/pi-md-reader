@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -38,22 +39,54 @@ def check(name: str, condition: bool, detail: str = "") -> None:
 
 
 def launch(cols: int = 110, rows: int = 32) -> PiSession:
+    """Start pi on the fixtures with the extension loaded.
+
+    `--no-approve` and an isolated HOME keep this deterministic: without them pi can stop at a
+    project-trust prompt, or load the developer's own global extensions and settings.
+    """
+    home = os.environ.get("PI_TEST_HOME") or tempfile.mkdtemp(prefix="pi-md-reader-home-")
     return PiSession(
-        [PI, "--extension", str(EXTENSION), "--no-session", "--no-skills", "--no-prompt-templates"],
+        [
+            PI,
+            "--extension",
+            str(EXTENSION),
+            "--no-session",
+            "--no-skills",
+            "--no-prompt-templates",
+            "--no-context-files",
+            "--no-approve",
+        ],
         cols=cols,
         rows=rows,
         cwd=str(FIXTURES),
-        env={"PI_OFFLINE": "1", "PI_SKIP_CHANGELOG": "1"},
+        env={"PI_OFFLINE": "1", "PI_SKIP_CHANGELOG": "1", "HOME": home},
     )
 
 
 def wait_ready(session: PiSession) -> None:
-    session.wait_for(
-        lambda s: "ctrl+o" in s.text() or "CRITEO" in s.text(),
-        timeout=45,
-        description="pi startup",
-    )
-    session.pump(0.8)
+    """Wait until pi has painted a settled screen and is accepting input.
+
+    This is deliberately content-independent: at small heights the startup banner scrolls out of
+    the visible viewport, and in CI there is no model provider, so probes for specific startup
+    text are unreliable. Waiting for the screen to stop changing works at every size.
+    """
+    end = time.time() + 90
+    previous = None
+    stable_since = None
+    while time.time() < end:
+        session.pump(0.3)
+        current = session.text()
+        if current.strip():
+            if current == previous:
+                stable_since = stable_since or time.time()
+                # Half a second of quiet means startup finished animating.
+                if time.time() - stable_since > 0.6:
+                    session.pump(0.4)
+                    return
+            else:
+                stable_since = None
+        previous = current
+    raise TimeoutError(f"pi did not settle at startup\n--- screen ---\n{session.text()}")
 
 
 def open_reader(session: PiSession, path: str, expect: str | None = None) -> None:

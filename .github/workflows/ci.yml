@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: end-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Install pi
+        run: npm install --global @earendil-works/pi-coding-agent
+
+      - name: Install test dependencies
+        run: |
+          python3 -m venv /tmp/e2evenv
+          /tmp/e2evenv/bin/pip install --quiet pyte pillow
+
+      # The reader is pure terminal UI: it never calls a model, so CI needs no API key.
+      # PI_OFFLINE keeps startup from reaching the network.
+      - name: Validate the package manifest
+        run: node test/check-manifest.mjs
+
+      - name: Run the end-to-end tests
+        env:
+          PI_OFFLINE: "1"
+          E2E_VENV: /tmp/e2evenv
+        run: test/run.sh
+
+      - name: Upload the test report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: e2e-report
+          path: test/artifacts/
+          if-no-files-found: warn

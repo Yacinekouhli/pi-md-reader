@@ -1,0 +1,124 @@
+name: Publish
+
+# Releases are driven by tags: push v0.2.0 and this publishes package.json's 0.2.0.
+# Authentication is OIDC trusted publishing, so there is no npm token to leak or rotate.
+#
+# The trusted publisher is registered on npmjs.com against THIS filename. Renaming the file
+# breaks publishing until the npmjs.com setting is updated to match it.
+#
+# Running this workflow manually (workflow_dispatch) validates and packs without publishing:
+# only a v* tag reaches the publish job.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: end-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Install pi
+        run: npm install --global @earendil-works/pi-coding-agent
+
+      - name: Install test dependencies
+        run: |
+          python3 -m venv /tmp/e2evenv
+          /tmp/e2evenv/bin/pip install --quiet pyte pillow
+
+      - name: Validate the package manifest
+        run: node test/check-manifest.mjs
+
+      # Publishing a package that fails its own tests is not worth the convenience.
+      # The reader is pure terminal UI and never calls a model, so CI needs no API key.
+      - name: Run the end-to-end tests
+        env:
+          PI_OFFLINE: "1"
+          E2E_VENV: /tmp/e2evenv
+        run: test/run.sh
+
+      - name: Upload the test report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: e2e-report
+          path: test/artifacts/
+          if-no-files-found: warn
+
+      # Shown on manual runs, so a dry run reports exactly what would be published.
+      - name: Show the tarball contents
+        run: npm pack --dry-run
+
+  publish:
+    name: publish to npm
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    # Trusted publishing exchanges a short-lived OIDC token for publish rights.
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      # Node 24 and npm >= 11.5.1 are required for OIDC trusted publishing.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Check that the tag matches package.json
+        run: |
+          manifest=$(node -p "require('./package.json').version")
+          tag="${GITHUB_REF_NAME#v}"
+          echo "tag=$tag manifest=$manifest"
+          if [ "$tag" != "$manifest" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package.json version $manifest."
+            echo "Tag the commit whose package.json already says $tag, or bump package.json first."
+            exit 1
+          fi
+
+      - name: Fail early if this version is already published
+        run: |
+          name=$(node -p "require('./package.json').name")
+          manifest=$(node -p "require('./package.json').version")
+          if npm view "$name@$manifest" version >/dev/null 2>&1; then
+            echo "::error::$name@$manifest is already published; npm versions are immutable."
+            echo "Bump the version and tag again."
+            exit 1
+          fi
+          echo "$name@$manifest is not yet published, proceeding."
+
+      - name: Publish
+        run: npm publish --access public
+
+      - name: Confirm the release
+        run: |
+          name=$(node -p "require('./package.json').name")
+          version=$(node -p "require('./package.json').version")
+          sleep 5
+          published=$(npm view "$name" version)
+          echo "registry reports $name@$published"
+          if [ "$published" != "$version" ]; then
+            echo "::error::registry reports $published, expected $version"
+            exit 1
+          fi
+          {
+            echo "### Published \`$name@$version\`"
+            echo
+            echo "Install with \`pi install npm:$name\`"
+            echo
+            echo "Gallery: https://pi.dev/packages/$name"
+          } >> "$GITHUB_STEP_SUMMARY"
