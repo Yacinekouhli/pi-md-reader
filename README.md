@@ -136,6 +136,40 @@ until the npmjs.com setting is updated to match.
 Running the workflow manually validates and packs without publishing, since only a `v*` tag
 reaches the publish job.
 
+#### Registering the trusted publisher
+
+Needs **npm >= 11.15.0**. Older npm cannot create a trust relationship: the registry requires a
+`permissions` array in the request, and npm only started sending it in 11.15.0. On npm 11.12.1
+the command fails with a bare `400 Bad Request`, roughly one second *after* the 2FA prompt
+succeeds — which makes it look like an authentication problem when it is not.
+
+```bash
+npm trust github pi-md-reader \
+  --file publish.yml \
+  --repo Yacinekouhli/pi-md-reader \
+  --allow-publish \
+  --yes
+npm trust list pi-md-reader      # verify
+```
+
+`--allow-publish` grants `npm publish` over OIDC and is required; without a permission flag the
+request is rejected. `--allow-stage-publish` is the alternative when releases should be staged
+for maintainer approval instead of published outright. Check the version first:
+
+```bash
+npm --version                    # needs >= 11.15.0
+npm install -g npm@^11.15.0      # or use a local copy, see below
+```
+
+If upgrading npm globally is undesirable, a local copy works and leaves the system npm alone:
+
+```bash
+mkdir -p ~/.local/share/npm-trust && cd ~/.local/share/npm-trust
+npm install npm@11.15.0
+~/.local/share/npm-trust/node_modules/.bin/npm trust github pi-md-reader \
+  --file publish.yml --repo Yacinekouhli/pi-md-reader --allow-publish --yes
+```
+
 There is no submission step for [pi.dev/packages](https://pi.dev/packages): the gallery indexes
 npm packages carrying the `pi-package` keyword.
 

@@ -78,6 +78,20 @@ else
   fi
 fi
 
+echo "trusted publishing"
+# `npm trust` silently misbehaves on npm < 11.15.0: it never sends the `permissions` array the
+# registry now requires, so it fails with a bare 400 right after the 2FA prompt succeeds.
+# Check the version here rather than discovering it a second time.
+npm_version=$(npm --version)
+if node -e 'const [a,b]=process.argv[1].split(".").map(Number); process.exit(a>11 || (a===11 && b>=15) ? 0 : 1)' "$npm_version"; then
+  ok "npm $npm_version can create trust relationships"
+else
+  bad "npm $npm_version cannot create a trust relationship (needs >= 11.15.0)"
+  echo "       npm < 11.15.0 omits the permissions array the registry requires and fails"
+  echo "       with a bare 400 right after the 2FA prompt succeeds."
+  echo "       use a newer npm, e.g.: npm install -g npm@^11.15.0"
+fi
+
 echo
 if [ "$fail" -eq 0 ]; then
   printf '\033[32mall preflight checks passed\033[0m\n\n'
