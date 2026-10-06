@@ -13,6 +13,15 @@
     "docs"
   ],
   "license": "MIT",
+  "author": "Yacine Kouhli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yacinekouhli/pi-md-reader.git"
+  },
+  "homepage": "https://github.com/Yacinekouhli/pi-md-reader#readme",
+  "bugs": {
+    "url": "https://github.com/Yacinekouhli/pi-md-reader/issues"
+  },
   "type": "module",
   "pi": {
     "extensions": [
