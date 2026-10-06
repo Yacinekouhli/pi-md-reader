@@ -1,6 +1,6 @@
 {
   "name": "pi-md-reader",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Read Markdown files inside Pi with a paged overlay reader: contents panel, search, scrollbar, and reload — rendered with Pi's own Markdown theme.",
   "keywords": [
     "pi-package",
