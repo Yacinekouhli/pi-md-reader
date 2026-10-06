@@ -116,14 +116,21 @@ instead of being committed.
 
 ### Publishing
 
-`test/preflight.sh` verifies the Pi package contract, that the entry point imports nothing
-outside Node built-ins and the two host-provided peers, the exact tarball contents, and whether
-the version is free on npm:
+npm requires **either** 2FA enabled on the account **or** a granular access token with
+"bypass 2FA" enabled to publish. `test/preflight.sh` verifies the Pi package contract, that the
+entry point imports nothing outside Node built-ins and the two host-provided peers, the exact
+tarball contents, whether the version is free, and reports the account's 2FA state — because a
+publish on an account with 2FA disabled fails with a bare `403` only after the tarball has been
+built:
 
 ```bash
 test/preflight.sh
 npm publish --access public
 ```
+
+Note that npm's OIDC [trusted publishing](https://docs.npmjs.com/trusted-publishers) cannot
+publish a version of a package that does not exist yet, so the **first release must be manual**.
+Afterwards it can be configured for tag-driven CI releases from GitHub Actions.
 
 There is no submission step for [pi.dev/packages](https://pi.dev/packages): the gallery indexes
 npm packages carrying the `pi-package` keyword.

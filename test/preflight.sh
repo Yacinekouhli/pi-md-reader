@@ -51,11 +51,34 @@ else
   ok "$name is free on npm"
 fi
 
+echo "npm auth"
+# Publishing requires 2FA on the account OR a granular token with bypass-2FA enabled.
+# Both facts are discoverable, so report them here instead of letting npm answer with a
+# bare 403 after the upload has already been prepared.
+who=$(npm whoami 2>/dev/null || true)
+if [ -z "$who" ]; then
+  bad "not logged in to npm; run: npm login"
+else
+  ok "authenticated as $who"
+  twofa=$(npm profile get 2>/dev/null | sed -nE 's/^two-factor auth:[[:space:]]*//p' | head -1)
+  if [ "$twofa" = "disabled" ]; then
+    warn "account 2FA is disabled, so npm will refuse an interactive publish"
+    echo "       fix, either:"
+    echo "         a) enable 2FA at https://www.npmjs.com/settings/$who/profile"
+    echo "            then re-run this script and publish interactively"
+    echo "         b) create a granular access token with \"bypass 2FA\" enabled at"
+    echo "            https://www.npmjs.com/settings/$who/tokens and install it:"
+    echo "              npm config set //registry.npmjs.org/:_authToken <token>"
+    echo "       see: https://docs.npmjs.com/requiring-2fa-for-package-publishing-and-settings-modification/"
+  else
+    ok "account 2FA is $twofa"
+  fi
+fi
+
 echo
 if [ "$fail" -eq 0 ]; then
   printf '\033[32mall preflight checks passed\033[0m\n\n'
   echo "publish with:"
-  echo "  npm login          # once, if not already authenticated"
   echo "  npm publish --access public"
   echo
   echo "then verify:"
