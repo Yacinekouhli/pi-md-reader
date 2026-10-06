@@ -1,0 +1,30 @@
+
+ ▀▀█  v1.0.0
+ █▀ █ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more
+ Press ctrl+o to show full startup help and loaded resources.
+                ╭─ Open Markdown file ───────────────────────────────────────────────────────────╮
+ Pi can explain │filter type to narrow the list                                              8/8  │
+                │▸ crlf.md                                                                        │
+                │  empty.md                                                                       │
+[Context]       │  HANDOVER.md                                                                    │
+  ~/.pi/agent/AG│  notes.md   nested                                                              │
+                │  noheadings.md                                                                  │
+[Extensions]    │  other.markdown                                                                 │
+  @narumitw/pi-p│  setext.md                                                                      │ts,
+pi-web-access:di│  unicode.md                                                                     │
+                │                                                                                 │
+                │                                                                                 │
+                │                                                                                 │
+                │                                                                                 │
+                │                                                                                 │
+                │                                                                                 │
+                │                                                                                 │
+                │                                                                                 │
+                │                                                                                 │
+                │ ↑↓ choose · type to filter · ⏎ open · esc cancel                                │
+                │                                                                                 │
+                ╰─────────────────────────────────────────────────────────────────────────────────╯
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+CRITEO π  │  [Claude Opus 5.5]  📁 fixtures  🧠 ────────── 0%  ⏱  2s

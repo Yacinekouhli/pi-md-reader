@@ -1,0 +1,34 @@
+╭─ HANDOVER.md ───────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Quarterly Handover › Numbers                                                                          6 sections │
+│   Quarterly Handover                  │ ├─────────┼────────┼───────┤                                           │ │
+│     Scope                             │ │ Servers │ 21     │ 21    │                                           │ │
+│     Numbers                           │ ├─────────┼────────┼───────┤                                           │ │
+│       Risks                           │ │ Feeds   │ 0      │ 1     │                                           │ │
+│ ▸   Timeline                          │ └─────────┴────────┴───────┘                                           │ │
+│     Appendix                          │                                                                        │ │
+│                                       │ ### Risks                                                              │ │
+│                                       │                                                                        │ │
+│                                       │ 1. Auth is still blocked upstream                                      │ │
+│                                       │ 2. Owners may drift                                                    │ │
+│                                       │                                                                        ┃ │
+│                                       │ Timeline                                                               ┃ │
+│                                       │                                                                        ┃ │
+│                                       │ The rollout needs a preprod rehearsal first, then a two week soak in   ┃ │
+│                                       │ production before the                                                  ┃ │
+│                                       │ Git migration is deleted.                                              ┃ │
+│                                       │                                                                        ┃ │
+│                                       │ ZEBRA_UNIQUE_TOKEN appears here once, for search assertions.           ┃ │
+│                                       │                                                                        ┃ │
+│                                       │ ```python                                                              ┃ │
+│                                       │   # a fence that must not become a heading                             ┃ │
+│                                       │   def deploy(name):                                                    ┃ │
+│                                       │       return f"deploying {name}"                                       ┃ │
+│                                       │ ```                                                                    ┃ │
+│                                       │                                                                        ┃ │
+│                                       │ Appendix                                                               ┃ │
+│                                       │                                                                        ┃ │
+│                                       │ Nothing to see here beyond the trailing section that makes the document┃ │
+│                                       │ long enough to scroll                                                  ┃ │
+│                                       │ past more than one viewport at typical terminal sizes.                 ┃ │
+│ ↑↓ move · ⏎ close contents · / find · q quit                                                      100%  17–46/46 │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

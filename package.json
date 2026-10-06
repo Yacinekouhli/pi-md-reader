@@ -1,0 +1,35 @@
+{
+  "name": "pi-md-reader",
+  "version": "0.1.0",
+  "description": "Read Markdown files inside Pi with a paged overlay reader: contents panel, search, scrollbar, and reload — rendered with Pi's own Markdown theme.",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "pi",
+    "markdown",
+    "reader",
+    "pager",
+    "tui",
+    "docs"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "pi": {
+    "extensions": [
+      "./extensions/md-reader.ts"
+    ],
+    "image": "https://raw.githubusercontent.com/Yacinekouhli/pi-md-reader/main/test/assets/reader.png"
+  },
+  "files": [
+    "extensions",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  }
+}

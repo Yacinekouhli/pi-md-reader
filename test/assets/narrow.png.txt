@@ -1,0 +1,20 @@
+╭─ HANDOVER.md ───────────────────────────────────────────────╮
+│ Quarterly Handover                                6 sections │
+│ Quarterly Handover                                         ┃ │
+│                                                            ┃ │
+│ Intro paragraph with enough words to exercise wrapping     ┃ │
+│ behaviour in a narrow reader viewport,                     ┃ │
+│ plus an inline code span, a bold phrase, and a link.       ┃ │
+│                                                            │ │
+│ Scope                                                      │ │
+│                                                            │ │
+│ - Consolidate the gateway servers                          │ │
+│ - Retire the duplicate registry entries                    │ │
+│ - Ship the reader                                          │ │
+│                                                            │ │
+│ Numbers                                                    │ │
+│                                                            │ │
+│ ┌─────────┬────────┬───────┐                               │ │
+│ │ Metric  │ Before │ After │                               │ │
+│                                                  0%  1–16/47 │
+╰──────────────────────────────────────────────────────────────╯
