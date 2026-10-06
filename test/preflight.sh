@@ -40,15 +40,18 @@ done
 if grep -qE '^(test/|test$)' <<<"$files"; then bad "test files leaked into the tarball"; else ok "test files excluded"; fi
 
 echo "registry"
+# A version that is already published is only a problem when the intent is to publish.
+# Report it as information, and keep the hard failure for a version mismatch that would
+# silently no-op a release.
 if curl -sf "https://registry.npmjs.org/$name" >/dev/null; then
   published=$(curl -s "https://registry.npmjs.org/$name" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s)["dist-tags"].latest))')
   if [ "$published" = "$version" ]; then
-    bad "$name@$version is already published; bump the version"
+    warn "$name@$version is already published; bump the version before releasing again"
   else
-    warn "$name exists on npm at $published; publishing $version will add a new version"
+    ok "$name is on npm at $published; $version will be a new release"
   fi
 else
-  ok "$name is free on npm"
+  ok "$name is free on npm; $version will be the first release"
 fi
 
 echo "npm auth"
@@ -78,11 +81,11 @@ fi
 echo
 if [ "$fail" -eq 0 ]; then
   printf '\033[32mall preflight checks passed\033[0m\n\n'
-  echo "publish with:"
-  echo "  npm publish --access public"
+  echo "release with:"
+  echo "  npm version patch && git push --follow-tags   # CI publishes on the v* tag"
   echo
-  echo "then verify:"
-  echo "  pi install npm:$name"
+  echo "or manually, for a first release:"
+  echo "  npm publish --access public"
 else
   printf '\033[31mpreflight failed\033[0m\n'
 fi
