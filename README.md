@@ -93,6 +93,8 @@ pi install git:github.com/Yacinekouhli/pi-md-reader   # from git
 pi --extension ./extensions/md-reader.ts    # try it without installing
 ```
 
+### Tests
+
 `test/run.sh` is an end-to-end test: it boots a real `pi` inside a PTY, sends keystrokes,
 decodes the terminal with pyte, and asserts on the screen a user would actually see —
 scrolling, the contents panel, search, reload-after-edit, the picker, empty/headingless/CRLF/
@@ -100,6 +102,7 @@ setext/Unicode documents, absolute paths, missing files, and a narrow-terminal p
 if any line overflows. It writes `test/artifacts/e2e-summary.md`.
 
 ```bash
+python3 -m venv /tmp/e2evenv && /tmp/e2evenv/bin/pip install pyte pillow
 test/run.sh
 ```
 
@@ -108,10 +111,22 @@ each rendered image against the terminal buffer before saving it, so a broken re
 instead of being committed.
 
 ```bash
-python3 -m venv /tmp/e2evenv && /tmp/e2evenv/bin/pip install pyte pillow
-test/run.sh
 /tmp/e2evenv/bin/python test/screenshot.py
 ```
+
+### Publishing
+
+`test/preflight.sh` verifies the Pi package contract, that the entry point imports nothing
+outside Node built-ins and the two host-provided peers, the exact tarball contents, and whether
+the version is free on npm:
+
+```bash
+test/preflight.sh
+npm publish --access public
+```
+
+There is no submission step for [pi.dev/packages](https://pi.dev/packages): the gallery indexes
+npm packages carrying the `pi-package` keyword.
 
 ## License
 
