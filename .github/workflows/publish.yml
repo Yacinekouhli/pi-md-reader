@@ -108,13 +108,30 @@ jobs:
         run: |
           name=$(node -p "require('./package.json').name")
           version=$(node -p "require('./package.json').version")
-          sleep 5
-          published=$(npm view "$name" version)
-          echo "registry reports $name@$published"
+
+          # npm's own publish output says the package "may take a few minutes to become
+          # available", and it is not visible in the registry immediately after npm publish
+          # exits successfully. Poll instead of sleeping a fixed amount: an observed release
+          # took roughly 2.5 minutes to appear. Query the version-specific endpoint rather
+          # than npm view, which can serve a cached packument that predates the release.
+          deadline=$((SECONDS + 420))
+          published=""
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            if curl -sf "https://registry.npmjs.org/$name/$version" >/dev/null; then
+              published="$version"
+              break
+            fi
+            echo "waiting for $name@$version to appear in the registry..."
+            sleep 15
+          done
+
           if [ "$published" != "$version" ]; then
-            echo "::error::registry reports $published, expected $version"
+            echo "::error::$name@$version was published but has not appeared in the registry after 7 minutes"
+            echo "Check https://www.npmjs.com/package/$name"
             exit 1
           fi
+
+          echo "$name@$version is live in the registry"
           {
             echo "### Published \`$name@$version\`"
             echo
